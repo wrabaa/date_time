@@ -1,28 +1,35 @@
-{\rtf1\ansi\ansicpg1252\cocoartf2639
-\cocoatextscaling0\cocoaplatform0{\fonttbl\f0\fmodern\fcharset0 Courier;}
-{\colortbl;\red255\green255\blue255;\red0\green0\blue0;}
-{\*\expandedcolortbl;;\cssrgb\c0\c0\c0;}
-\margl1440\margr1440\vieww11520\viewh8400\viewkind0
-\deftab720
-\pard\pardeftab720\partightenfactor0
+from RPLCD.i2c import CharLCD
+from datetime import datetime
+import time
 
-\f0\fs26 \cf0 \expnd0\expndtw0\kerning0
-\outl0\strokewidth0 \strokec2 from datetime import datetime\
-import time\
-\
-try:\
-    while True:\
-        # Get the current time and date\
-        current_time = datetime.now().strftime("%I:%M:%S %p")\
-        current_date = datetime.now().strftime("%Y-%m-%d")\
-\
-        # Display the time and date in the terminal\
-        print(f"Time: \{current_time\}")\
-        print(f"Date: \{current_date\}")\
-\
-        time.sleep(1)  # Wait for 1 second before updating the display\
-\
-except KeyboardInterrupt:\
-    print("Exiting...")\
-    time.sleep(2)  # Wait for 2 seconds before clearing the screen\
-}
+# Replace 0x27 with the I2C address of your LCD module
+lcd = CharLCD('PCF8574', 0x27)
+
+try:
+    while True:
+        # Get the current time and date
+        current_time = datetime.now().strftime("%I:%M:%S %p")
+        current_date = datetime.now().strftime("%Y-%m-%d")
+
+        # Display the time and date on the LCD
+        lcd.clear()
+        lcd.write_string(f"Time: {current_time}")
+        lcd.crlf()  # Move to the second line
+        lcd.write_string(f"Date: {current_date}")
+
+        time.sleep(1)  # Wait for 1 second before updating the display
+
+except KeyboardInterrupt:
+    lcd.clear()  # Clear the LCD before exiting
+    lcd.write_string("Exiting...")
+    time.sleep(2)  # Wait for 2 seconds before fading out
+
+    # Fade out the LCD by gradually reducing the brightness
+    for brightness in range(100, 0, -10):
+        lcd.backlight_enabled = False
+        time.sleep(0.1)
+        lcd.backlight_enabled = True
+        lcd.brightness = brightness
+
+    lcd.clear()  # Clear the screen
+
